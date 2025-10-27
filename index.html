@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Социальный опрос БурСервис</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Фоновая надпись */
+        .background-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 120px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.15);
+            text-align: center;
+            white-space: nowrap;
+            z-index: 0;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+        
+        .survey-container {
+            max-width: 800px; /* Увеличено с 600px */
+            width: 100%;
+            padding: 40px; /* Увеличено с 30px */
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .survey-title {
+            font-size: 28px; /* Увеличено с 24px */
+            margin-bottom: 40px; /* Увеличено с 30px */
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .buttons-container {
+            position: relative;
+            min-height: 300px; /* Увеличено с 150px */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px; /* Увеличено с 20px */
+            margin: 60px 0; /* Увеличено с 40px */
+            width: 100%;
+        }
+        
+        .btn {
+            padding: 18px 45px; /* Увеличено с 14px 35px */
+            font-size: 22px; /* Увеличено с 18px */
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-yes {
+            background: #4CAF50;
+            color: white;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .btn-yes:hover {
+            background: #45a049;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .btn-no {
+            background: #333;
+            color: white;
+            position: absolute;
+            transition: transform 0.1s ease-out;
+            z-index: 5;
+        }
+        
+        .btn-no:hover {
+            background: #222;
+        }
+        
+        .instructions {
+            margin-top: 30px; /* Увеличено с 20px */
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px; /* Увеличено с 14px */
+            font-style: italic;
+        }
+        
+        /* Стили для модального окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px; /* Увеличено с 30px */
+            border-radius: 12px;
+            max-width: 500px; /* Увеличено с 400px */
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.3s ease;
+            position: relative;
+        }
+        
+        .modal-title {
+            font-size: 26px; /* Увеличено с 22px */
+            margin-bottom: 20px; /* Увеличено с 15px */
+            color: #333;
+        }
+        
+        .modal-message {
+            font-size: 20px; /* Увеличено с 18px */
+            color: #555;
+            margin-bottom: 25px; /* Увеличено с 20px */
+        }
+        
+        .modal-close {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px; /* Увеличено с 10px 20px */
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px; /* Увеличено с 16px */
+            transition: background 0.3s;
+        }
+        
+        .modal-close:hover {
+            background: #45a049;
+        }
+        
+        .countdown {
+            font-size: 16px;
+            color: #777;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Анимация для фоновой надписи */
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) rotate(-15deg) scale(1); }
+            50% { transform: translate(-50%, -50%) rotate(-15deg) scale(1.05); }
+        }
+        
+        .background-text {
+            animation: float 8s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Фоновая надпись -->
+    <div class="background-text">БурСервис! Не в деньгах счастье!</div>
+    
+    <div class="survey-container">
+        <div class="survey-title">Удовлетворяет ли вас заработная плата в компании БурСервис?</div>
+        
+        <div class="buttons-container" id="buttonsContainer">
+            <button class="btn btn-yes" onclick="showModal()">ДА</button>
+            <button class="btn btn-no" id="noBtn" onclick="showTrickyModal()">НЕТ</button>
+        </div>
+        
+        <div class="instructions">
+        </div>
+    </div>
+
+    <!-- Модальное окно для ДА -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Спасибо за ответ!</h2>
+            <p class="modal-message">Мы не сомневались, что вы так думаете! </p>
+            <div class="countdown" id="countdownYes">Страница закроется через 3 секунды...</div>
+            <button class="modal-close" onclick="closeModalAndPage()">Закрыть сейчас</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно для НЕТ -->
+    <div class="modal" id="trickyModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Ой-ой!</h2>
+            <p class="modal-message">А кто это у на такой ЖУК хитрожопый!</p>
+            <div class="countdown" id="countdownNo">Страница закроется через 3 секунды...</div>
+            <button class="modal-close" onclick="closeModalAndPage()">Закрыть сейчас</button>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const buttonsContainer = document.getElementById('buttonsContainer');
+        const modal = document.getElementById('modal');
+        const trickyModal = document.getElementById('trickyModal');
+        const countdownYes = document.getElementById('countdownYes');
+        const countdownNo = document.getElementById('countdownNo');
+        
+        let countdownTimer;
+        let countdownTime = 3;
+
+        // Размеры контейнера и кнопки
+        const containerWidth = buttonsContainer.offsetWidth;
+        const containerHeight = buttonsContainer.offsetHeight;
+        const buttonWidth = noBtn.offsetWidth;
+        const buttonHeight = noBtn.offsetHeight;
+        
+        // Функция для получения случайной позиции в пределах контейнера
+        function getRandomPosition() {
+            const maxX = containerWidth - buttonWidth;
+            const maxY = containerHeight - buttonHeight;
+            
+            return {
+                x: Math.floor(Math.random() * maxX),
+                y: Math.floor(Math.random() * maxY)
+            };
+        }
+        
+        // Устанавливаем начальную позицию кнопки "НЕТ"
+        const initialPos = getRandomPosition();
+        noBtn.style.left = initialPos.x + 'px';
+        noBtn.style.top = initialPos.y + 'px';
+        
+        // Обработчик движения мыши
+        document.addEventListener('mousemove', (e) => {
+            // Получаем позицию курсора относительно контейнера
+            const containerRect = buttonsContainer.getBoundingClientRect();
+            const mouseX = e.clientX - containerRect.left;
+            const mouseY = e.clientY - containerRect.top;
+            
+            // Получаем текущую позицию кнопки
+            const buttonX = parseInt(noBtn.style.left) || 0;
+            const buttonY = parseInt(noBtn.style.top) || 0;
+            
+            // Центр кнопки
+            const buttonCenterX = buttonX + buttonWidth / 2;
+            const buttonCenterY = buttonY + buttonHeight / 2;
+            
+            // Расстояние между курсором и центром кнопки
+            const distance = Math.sqrt(
+                Math.pow(mouseX - buttonCenterX, 2) + 
+                Math.pow(mouseY - buttonCenterY, 2)
+            );
+            
+            // Если курсор близко к кнопке, перемещаем её
+            const escapeDistance = 100; // Увеличено для более плавного движения
+            
+            if (distance < escapeDistance) {
+                // Направление от курсора
+                const angle = Math.atan2(buttonCenterY - mouseY, buttonCenterX - mouseX);
+                
+                // Сила отталкивания (чем ближе курсор, тем сильнее)
+                const force = (escapeDistance - distance) / escapeDistance * 150 + 80;
+                
+                // Новая позиция
+                let newX = buttonX + Math.cos(angle) * force;
+                let newY = buttonY + Math.sin(angle) * force;
+                
+                // Ограничиваем позицию в пределах контейнера
+                newX = Math.max(0, Math.min(containerWidth - buttonWidth, newX));
+                newY = Math.max(0, Math.min(containerHeight - buttonHeight, newY));
+                
+                // Применяем новую позицию
+                noBtn.style.transform = `translate(${newX - buttonX}px, ${newY - buttonY}px)`;
+                
+                // Обновляем позицию в данных
+                noBtn.style.left = newX + 'px';
+                noBtn.style.top = newY + 'px';
+            }
+        });
+        
+        // Функция запуска обратного отсчета
+        function startCountdown(modalType) {
+            clearTimeout(countdownTimer);
+            countdownTime = 3;
+            
+            const countdownElement = modalType === 'yes' ? countdownYes : countdownNo;
+            
+            function updateCountdown() {
+                countdownElement.textContent = `Страница закроется через ${countdownTime} секунды...`;
+                
+                if (countdownTime <= 0) {
+                    closePage();
+                } else {
+                    countdownTime--;
+                    countdownTimer = setTimeout(updateCountdown, 1000);
+                }
+            }
+            
+            updateCountdown();
+        }
+        
+        // Функция показа модального окна для ДА
+        function showModal() {
+            modal.style.display = 'flex';
+            startCountdown('yes');
+        }
+        
+        // Функция показа модального окна для НЕТ
+        function showTrickyModal() {
+            trickyModal.style.display = 'flex';
+            startCountdown('no');
+        }
+        
+        // Функция закрытия модального окна и страницы
+        function closeModalAndPage() {
+            closePage();
+        }
+        
+        // Функция закрытия страницы
+        function closePage() {
+            // Попытка закрыть окно/вкладку
+            if (window.opener) {
+                window.close();
+            } else {
+                // Если окно не было открыто скриптом, показываем сообщение
+                alert('Окно должно закрыться автоматически. Если этого не произошло, закройте вкладку вручную.');
+                // Альтернативный способ - перенаправление на пустую страницу или закрытие
+                try {
+                    window.open('', '_self').close();
+                } catch (e) {
+                    // Если не получается закрыть, просто скрываем контент
+                    document.body.innerHTML = '<div style="text-align: center; padding: 50px; color: white; font-size: 24px;">Спасибо за участие в опросе!</div>';
+                }
+            }
+        }
+        
+        // Закрытие модальных окон при клике вне их
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModalAndPage();
+            }
+            if (e.target === trickyModal) {
+                closeModalAndPage();
+            }
+        });
+        
+        // Обработчик нажатия клавиш для кнопки "НЕТ"
+        noBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                showTrickyModal();
+            }
+        });
+        
+        // Добавляем обработчик клика на кнопку "НЕТ" для дополнительного убегания
+        noBtn.addEventListener('mouseover', () => {
+            // Дополнительное случайное перемещение при наведении
+            const newPos = getRandomPosition();
+            noBtn.style.left = newPos.x + 'px';
+            noBtn.style.top = newPos.y + 'px';
+            noBtn.style.transform = 'translate(0, 0)';
+        });
+        
+        // Увеличиваем скорость реакции кнопки
+        noBtn.addEventListener('mousemove', (e) => {
+            e.stopPropagation();
+        });
+
+        // Обновляем размеры контейнера при изменении размера окна
+        window.addEventListener('resize', () => {
+            const newPos = getRandomPosition();
+            noBtn.style.left = newPos.x + 'px';
+            noBtn.style.top = newPos.y + 'px';
+        });
+    </script>
+</body>
+</html>
